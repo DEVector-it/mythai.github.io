@@ -1,0 +1,784 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Myth AI — Student Mode</title>
+  <!-- Google AdSense -->
+  <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-1136294351029434" crossorigin="anonymous"></script>
+  <style>
+    body {
+      font-family: 'Courier New', monospace;
+      margin: 0;
+      padding: 0;
+      background-color: #0e0e1a;
+      color: #d4af37;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      height: 100vh;
+      flex-direction: column;
+    }
+
+    #login-container,
+    #chat-container {
+      background: #1b1b2e;
+      padding: 20px;
+      border-radius: 12px;
+      width: 95%;
+      max-width: 900px;
+      box-shadow: 0 0 20px #000;
+      display: flex;
+      flex-direction: row;
+      gap: 20px;
+      box-sizing: border-box;
+    }
+
+    /* Left: Chat area */
+    #left-panel {
+      flex: 3;
+      display: flex;
+      flex-direction: column;
+      height: 75vh;
+    }
+
+    #chat-window {
+      flex-grow: 1;
+      overflow-y: auto;
+      border: 1px solid #444;
+      padding: 10px;
+      background: #121220;
+      border-radius: 10px;
+      margin-bottom: 10px;
+      scroll-behavior: smooth;
+    }
+
+    /* Pagination below chat window */
+    #pagination {
+      display: flex;
+      justify-content: center;
+      gap: 10px;
+      margin-bottom: 10px;
+    }
+
+    /* Buttons row */
+    #controls {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+      justify-content: center;
+    }
+
+    /* Right: Stats sidebar */
+    #right-panel {
+      flex: 1.4;
+      background: #151528;
+      border-radius: 12px;
+      padding: 10px;
+      display: flex;
+      flex-direction: column;
+      height: 75vh;
+      box-sizing: border-box;
+    }
+
+    #streak,
+    #leaderboard,
+    #history {
+      background: #252538;
+      padding: 10px;
+      border-radius: 10px;
+      margin-bottom: 12px;
+      font-size: 14px;
+      flex-shrink: 0;
+    }
+
+    #streak {
+      height: 40px;
+      line-height: 40px;
+      font-weight: bold;
+      text-align: center;
+      user-select: none;
+    }
+
+    #leaderboard {
+      flex-grow: 1;
+      overflow-y: auto;
+    }
+
+    #history {
+      height: 140px;
+      overflow-y: auto;
+    }
+
+    /* Messages style */
+    .message.user {
+      text-align: right;
+      color: #7ae582;
+      margin: 4px 0;
+    }
+
+    .message.bot {
+      text-align: left;
+      font-style: italic;
+      margin: 4px 0;
+    }
+
+    input,
+    button,
+    select {
+      padding: 14px 20px;
+      font-size: 18px;
+      border: none;
+      border-radius: 8px;
+      margin: 8px 4px;
+      cursor: pointer;
+      font-weight: bold;
+      transition: background-color 0.3s ease;
+      box-sizing: border-box;
+    }
+
+    input:focus {
+      outline: none;
+      box-shadow: 0 0 8px #d4af37;
+    }
+
+    button {
+      background-color: #d4af37;
+      color: #0e0e1a;
+    }
+
+    button:hover {
+      background-color: #b58f20;
+    }
+
+    #user-input {
+      flex-grow: 1;
+      margin-right: 8px;
+    }
+
+    #ad-container {
+      background: #2a2a3e;
+      color: white;
+      padding: 10px;
+      margin-top: 15px;
+      border-radius: 10px;
+      text-align: center;
+      font-size: 14px;
+      max-width: 900px;
+      width: 95%;
+      box-sizing: border-box;
+      user-select: none;
+    }
+
+    #weekly-update {
+      margin-top: 10px;
+      font-weight: bold;
+      color: #d4af37;
+      font-size: 16px;
+    }
+
+    /* Pagination buttons */
+    #pagination button {
+      background-color: #7ae582;
+      color: #121220;
+      font-weight: bold;
+      padding: 8px 16px;
+      border-radius: 6px;
+      font-size: 14px;
+    }
+
+    #pagination button:disabled {
+      opacity: 0.4;
+      cursor: not-allowed;
+    }
+
+    /* Modal styles */
+    #modal-bg {
+      display: none;
+      position: fixed;
+      top: 0;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      background: rgba(0, 0, 0, 0.8);
+      z-index: 1000;
+      justify-content: center;
+      align-items: center;
+    }
+
+    #modal {
+      background: #1b1b2e;
+      color: #d4af37;
+      border-radius: 12px;
+      padding: 20px;
+      width: 90%;
+      max-width: 400px;
+      box-shadow: 0 0 20px #000;
+      position: relative;
+      text-align: center;
+    }
+
+    #modal h2 {
+      margin-top: 0;
+    }
+
+    #modal input {
+      width: 100%;
+      margin: 10px 0;
+      padding: 12px;
+      font-size: 16px;
+      border-radius: 6px;
+      border: none;
+    }
+
+    #modal button {
+      margin-top: 10px;
+      width: 100%;
+      padding: 14px;
+      font-size: 18px;
+      font-weight: bold;
+      border-radius: 8px;
+    }
+
+    #modal .close-btn {
+      position: absolute;
+      top: 10px;
+      right: 15px;
+      background: transparent;
+      color: #d4af37;
+      font-size: 24px;
+      border: none;
+      cursor: pointer;
+    }
+
+    /* Responsive */
+    @media (max-width: 800px) {
+      #chat-container {
+        flex-direction: column;
+        height: auto;
+      }
+
+      #left-panel,
+      #right-panel {
+        flex: unset;
+        height: auto;
+        width: 100%;
+      }
+
+      #right-panel {
+        margin-top: 15px;
+      }
+    }
+  </style>
+</head>
+
+<body>
+  <!-- Login Section -->
+  <div id="login-container">
+    <h2>Welcome to Myth AI</h2>
+    <input type="text" id="username" placeholder="Enter your name" />
+    <input type="password" id="password" placeholder="Enter your password" />
+    <input type="text" id="ai-name" placeholder="Name your AI (e.g., Myth, Echo)" />
+    <button onclick="startChat()">Start</button>
+  </div>
+
+  <!-- Chat Section -->
+  <div id="chat-container" style="display:none;">
+    <div id="left-panel">
+      <div><strong id="aiHeader">Myth AI</strong> (<span id="model">MythGPT 0.5</span>)</div>
+      <div id="chat-window"></div>
+
+      <div id="pagination">
+        <button id="btnOlder" onclick="loadOlder()" disabled>⬆️ Older</button>
+        <button id="btnNewer" onclick="loadNewer()" disabled>⬇️ Newer</button>
+      </div>
+
+      <div id="controls">
+        <input type="text" id="user-input" placeholder="Ask or teach something..." />
+        <button onclick="sendMessage()">Send</button>
+        <select id="costume" onchange="changeCostume()">
+          <option value="classic">Classic</option>
+          <option value="ninja">Ninja</option>
+          <option value="future">Future</option>
+        </select>
+        <button onclick="switchModel()">Switch Model</button>
+        <button onclick="openModal()">Payment / Codes</button>
+        <button onclick="removeAccount()" style="background-color: #a83232;">Remove Account</button>
+      </div>
+    </div>
+
+    <div id="right-panel">
+      <div id="streak">🔥 Daily Streak: 0 day(s)</div>
+      <div id="leaderboard"><strong>🏆 Leaderboard:</strong><br>Loading...</div>
+      <div id="history"><strong>Your Chats:</strong><br>Loading...</div>
+    </div>
+  </div>
+
+  <!-- Ad + Weekly update notice -->
+  <div id="ad-container">
+    Ad space — place your ad here!
+    <div id="weekly-update"></div>
+  </div>
+
+  <!-- Payment / Codes Modal -->
+  <div id="modal-bg">
+    <div id="modal">
+      <button class="close-btn" onclick="closeModal()">×</button>
+      <h2>Unlock Upgrades</h2>
+      <p>Enter a secret code to unlock special AI models or buy upgrades:</p>
+      <input type="text" id="code-input" placeholder="Enter code here" />
+      <button onclick="submitCode()">Submit Code</button>
+      <hr />
+      <p>Or support Myth AI by buying upgrades:</p>
+      <button onclick="buyUpgrade('mythflash')">Buy MythFlash 2 ($4.99)</button>
+      <button onclick="buyUpgrade('mythgpt2')">Buy MythGPT 2.0 ($2.99)</button>
+    </div>
+  </div>
+
+  <script>
+    // === Global variables ===
+    const memory = JSON.parse(localStorage.getItem("memory")) || {};
+    const unlocked = JSON.parse(localStorage.getItem("unlocked")) || { mythgpt2: false, mythflash: false };
+    let username = "";
+    let password = "";
+    let aiName = "Myth";
+    let model = "MythGPT 0.5";
+    let chatLog = [];
+    let currentPage = 0;
+    const pageSize = 10;
+
+    // Tasks (with one-time code rewards)
+    const tasks = {
+      "task1": { description: "Teach Myth AI a new fact", completed: false, code: "FACT100" },
+      "task2": { description: "Send 10 messages", completed: false, code: "CHAT10" },
+      "task3": { description: "Upload a document", completed: false, code: "UPLOAD50" },
+    };
+
+    // === Login and Start Chat ===
+    function startChat() {
+      username = document.getElementById("username").value.trim() || "Student";
+      password = document.getElementById("password").value.trim();
+      aiName = document.getElementById("ai-name").value.trim() || "Myth";
+
+      // Simple password check (store hashed ideally; here for demo)
+      const storedPassword = localStorage.getItem(`password_${username}`);
+      if (storedPassword && storedPassword !== password) {
+        alert("Incorrect password. Try again.");
+        return;
+      }
+      if (!storedPassword && password) {
+        localStorage.setItem(`password_${username}`, password);
+      }
+      if (!password) {
+        alert("Please enter a password.");
+        return;
+      }
+
+      document.getElementById("aiHeader").textContent = aiName + " AI";
+      document.getElementById("login-container").style.display = "none";
+      document.getElementById("chat-container").style.display = "flex";
+
+      loadHistory();
+      updateStreak();
+      updateLeaderboard();
+      updateWeeklyUpdate();
+      speak(`Hello ${username}, I am ${aiName}. How can I help you today?`);
+    }
+
+    // === Remove account function ===
+    function removeAccount() {
+      if (confirm("Are you sure you want to remove your account and all data? This cannot be undone.")) {
+        localStorage.removeItem(`chat_${username}`);
+        localStorage.removeItem(`streak_${username}`);
+        localStorage.removeItem(`lastVisit_${username}`);
+        localStorage.removeItem(`password_${username}`);
+        alert("Your account and data have been removed.");
+        location.reload();
+      }
+    }
+
+    // === Update daily streak ===
+    function updateStreak() {
+      const today = new Date();
+      const lastVisitStr = localStorage.getItem(`lastVisit_${username}`);
+      let streak = parseInt(localStorage.getItem(`streak_${username}`)) || 0;
+
+      if (lastVisitStr) {
+        const lastVisit = new Date(lastVisitStr);
+        const diffTime = today.getTime() - lastVisit.getTime();
+        const diffDays = diffTime / (1000 * 3600 * 24);
+
+        if (diffDays < 1) {
+          // Same day, no change
+        } else if (diffDays < 2) {
+          streak++;
+        } else {
+          streak = 1;
+        }
+      } else {
+        streak = 1;
+      }
+
+      localStorage.setItem(`streak_${username}`, streak);
+      localStorage.setItem(`lastVisit_${username}`, today.toISOString());
+      document.getElementById("streak").innerText = `🔥 Daily Streak: ${streak} day(s)`;
+    }
+
+    // === Update leaderboard ===
+    function updateLeaderboard() {
+      let users = [];
+      for (let i = 0; i < localStorage.length; i++) {
+        const key = localStorage.key(i);
+        if (key.startsWith("chat_")) {
+          const name = key.replace("chat_", "");
+          const msgs = JSON.parse(localStorage.getItem(key)).length || 0;
+          const streak = parseInt(localStorage.getItem(`streak_${name}`)) || 0;
+          users.push({ name, msgs, streak });
+        }
+      }
+      users.sort((a, b) => b.streak - a.streak || b.msgs - a.msgs);
+      const top = users.slice(0, 5).map(u => `${u.name}: ${u.msgs} msgs, 🔥 ${u.streak} day streak`).join("<br>");
+      document.getElementById("leaderboard").innerHTML = `<strong>🏆 Leaderboard:</strong><br>${top || "No data yet."}`;
+    }
+
+    // === Chat pagination ===
+    function getMaxPage() {
+      return Math.max(0, Math.ceil(chatLog.length / pageSize) - 1);
+    }
+
+    function displayPage(page) {
+      const chatWindow = document.getElementById("chat-window");
+      chatWindow.innerHTML = "";
+      const start = page * pageSize;
+      const end = start + pageSize;
+      const msgs = chatLog.slice(start, end);
+      msgs.forEach(msg => {
+        const div = document.createElement("div");
+        div.textContent = msg;
+        div.className = msg.startsWith(username + ":") ? "message user" : "message bot";
+        chatWindow.appendChild(div);
+      });
+      updatePaginationButtons();
+      // Scroll bottom if last page
+      if (page === getMaxPage()) {
+        chatWindow.scrollTop = chatWindow.scrollHeight;
+      }
+    }
+
+    function loadOlder() {
+      if (currentPage > 0) {
+        currentPage--;
+        displayPage(currentPage);
+      }
+    }
+
+    function loadNewer() {
+      if (currentPage < getMaxPage()) {
+        currentPage++;
+        displayPage(currentPage);
+      }
+    }
+
+    function updatePaginationButtons() {
+      document.getElementById("btnOlder").disabled = currentPage === 0;
+      document.getElementById("btnNewer").disabled = currentPage === getMaxPage();
+    }
+
+    // === Append and save message ===
+    function appendMessage(text, sender) {
+      const prefix = sender === 'user' ? `${username}: ` : `${aiName}: `;
+      chatLog.push(prefix + text);
+      localStorage.setItem(`chat_${username}`, JSON.stringify(chatLog));
+      if (currentPage === getMaxPage()) {
+        currentPage = getMaxPage();
+        displayPage(currentPage);
+      }
+      updateHistory();
+      updateLeaderboard();
+      updateTasksProgress();
+      updateWeeklyUpdate();
+    }
+
+    // === Load chat history ===
+    function loadHistory() {
+      const saved = localStorage.getItem(`chat_${username}`);
+      chatLog = saved ? JSON.parse(saved) : [];
+      currentPage = getMaxPage();
+      displayPage(currentPage);
+      updateHistory();
+    }
+
+    // === Update chat history preview ===
+    function updateHistory() {
+      const histBox = document.getElementById("history");
+      histBox.innerHTML = '<strong>Your Chats:</strong><br>' + chatLog.slice(-5).join("<br>");
+    }
+
+    // === Speech synthesis ===
+    function speak(text) {
+      if ('speechSynthesis' in window) {
+        const utter = new SpeechSynthesisUtterance(text);
+        utter.lang = "en-US";
+        speechSynthesis.speak(utter);
+      }
+    }
+
+    // === Smarter AI respond function ===
+    function respond(inputRaw) {
+      const input = inputRaw.toLowerCase().trim();
+
+      // Greetings
+      const greetings = ["hi", "hello", "hey", "yo", "greetings"];
+      if (greetings.some(g => input.includes(g))) {
+        return botReply(`Hello, ${username}! I'm ${aiName}, your AI companion. What wisdom shall we explore today?`);
+      }
+
+      // Farewells
+      const farewells = ["bye", "goodbye", "see you", "later", "exit"];
+      if (farewells.some(f => input.includes(f))) {
+        return botReply(`Goodbye, ${username}! Remember, knowledge is power. See you soon!`);
+      }
+
+      // AI intro
+      if (input.includes("your name") || input.includes("who are you") || input.includes("what are you")) {
+        return botReply(`I am ${aiName}, a smart AI built to learn and grow with you. Let's conquer knowledge together.`);
+      }
+
+      // Math detection
+      const mathMatch = input.match(/(\d+)\s*(plus|\+|add|minus|\-|subtract|times|\*|multiply|divided by|\/|divide)\s*(\d+)/);
+      if (mathMatch) {
+        const num1 = parseFloat(mathMatch[1]);
+        const operator = mathMatch[2];
+        const num2 = parseFloat(mathMatch[3]);
+        let result;
+        switch (operator) {
+          case "plus":
+          case "+":
+          case "add":
+            result = num1 + num2;
+            break;
+          case "minus":
+          case "-":
+          case "subtract":
+            result = num1 - num2;
+            break;
+          case "times":
+          case "*":
+          case "multiply":
+            result = num1 * num2;
+            break;
+          case "divided by":
+          case "/":
+          case "divide":
+            if (num2 === 0) return botReply("Division by zero is undefined.");
+            result = num1 / num2;
+            break;
+          default:
+            return botReply("I couldn't understand the math operation.");
+        }
+        return botReply(`The result is ${result}.`);
+      }
+
+      // Teach facts: format "teach: mitochondria is powerhouse"
+      if (input.startsWith("teach:")) {
+        const fact = inputRaw.slice(6).trim();
+        const [key, ...valParts] = fact.split(" is ");
+        if (key && valParts.length) {
+          memory[key.trim()] = valParts.join(" is ").trim();
+          localStorage.setItem("memory", JSON.stringify(memory));
+          completeTask("task1");
+          return botReply(`Got it! I'll remember that.`);
+        }
+        return botReply("Please teach me in the format: teach: mitochondria is the powerhouse of the cell");
+      }
+
+      // Search memory for key words
+      for (const key in memory) {
+        if (input.includes(key.toLowerCase())) {
+          return botReply(memory[key]);
+        }
+      }
+
+      // Motivation quotes
+      const motivationKeywords = ["motivate", "inspire", "encourage", "quote"];
+      if (motivationKeywords.some(k => input.includes(k))) {
+        const quotes = [
+          "The best way to predict the future is to invent it. – Alan Kay",
+          "Success usually comes to those who are too busy to be looking for it.",
+          "Don't watch the clock; do what it does. Keep going.",
+          "Believe you can and you're halfway there. – Theodore Roosevelt"
+        ];
+        const randomQuote = quotes[Math.floor(Math.random() * quotes.length)];
+        return botReply(randomQuote);
+      }
+
+      // Small talk
+      if (input.includes("how are you")) {
+        return botReply(`I'm running at optimal efficiency! How about you, ${username}?`);
+      }
+      if (input.includes("what can you do")) {
+        return botReply(`I can learn from you, remember facts, solve simple math, motivate you, and chat endlessly. Teach me more to get smarter!`);
+      }
+
+      // Secret codes unlock
+      if (input === "mythstarter") {
+        if (!unlocked.mythgpt2) {
+          unlocked.mythgpt2 = true;
+          localStorage.setItem("unlocked", JSON.stringify(unlocked));
+          alert("🔓 You unlocked MythGPT 2.0!");
+        }
+        return botReply("🔓 You unlocked MythGPT 2.0!");
+      }
+
+      if (input === "buy mythflash 2") {
+        if (!unlocked.mythflash) {
+          unlocked.mythflash = true;
+          localStorage.setItem("unlocked", JSON.stringify(unlocked));
+          alert("💸 MythFlash 2 purchased and ready.");
+        }
+        return botReply("💸 MythFlash 2 purchased and ready.");
+      }
+
+      // Default fallback responses
+      const fallbackResponses = [
+        "I’m not sure about that yet, but I’m eager to learn! You can teach me using 'teach: ...'",
+        "That's interesting! Could you teach me about it?",
+        "Hmm... I'm still growing. Tell me more!",
+        "I'm a work in progress, but with your help, I’ll be unstoppable!"
+      ];
+      const fallback = fallbackResponses[Math.floor(Math.random() * fallbackResponses.length)];
+      return botReply(fallback);
+    }
+
+    // Helper to output bot message and speak it
+    function botReply(text) {
+      appendMessage(text, 'bot');
+      speak(text);
+      return text;
+    }
+
+    // === Send message handler ===
+    function sendMessage() {
+      const inputBox = document.getElementById("user-input");
+      let text = inputBox.value.trim();
+      if (!text) return;
+      appendMessage(text, 'user');
+      inputBox.value = "";
+      respond(text);
+      checkMessageCountTasks();
+    }
+
+    // === Model switching with proper unlock check ===
+    function switchModel() {
+      // Models list with unlock requirements
+      const models = [
+        { name: "MythGPT 0.5", unlock: null },
+        { name: "MythGPT 2.0", unlock: "mythgpt2" },
+        { name: "MythFlash 2", unlock: "mythflash" }
+      ];
+
+      // Find current model index
+      let currentIndex = models.findIndex(m => m.name === model);
+      // Move to next
+      let nextIndex = (currentIndex + 1) % models.length;
+
+      // Check if unlocked
+      if (models[nextIndex].unlock && !unlocked[models[nextIndex].unlock]) {
+        alert(`You need to unlock ${models[nextIndex].name} first! Enter a code or buy it.`);
+        return;
+      }
+
+      model = models[nextIndex].name;
+      document.getElementById("model").textContent = model;
+      alert(`Switched to ${model}`);
+    }
+
+    // === Change AI costume ===
+    function changeCostume() {
+      const costume = document.getElementById("costume").value;
+      document.body.style.backgroundColor = costume === "classic" ? "#0e0e1a" :
+        costume === "ninja" ? "#121212" :
+          costume === "future" ? "#003366" : "#0e0e1a";
+      // Could add more style or AI avatar changes here
+    }
+
+    // === Modal for payment/codes ===
+    function openModal() {
+      document.getElementById("modal-bg").style.display = "flex";
+    }
+    function closeModal() {
+      document.getElementById("modal-bg").style.display = "none";
+    }
+    function submitCode() {
+      const code = document.getElementById("code-input").value.trim().toUpperCase();
+      if (code === "MYTHSTARTER") {
+        unlocked.mythgpt2 = true;
+        localStorage.setItem("unlocked", JSON.stringify(unlocked));
+        alert("🔓 MythGPT 2.0 unlocked!");
+      } else if (code === "MYTHFLASH") {
+        unlocked.mythflash = true;
+        localStorage.setItem("unlocked", JSON.stringify(unlocked));
+        alert("🔓 MythFlash 2 unlocked!");
+      } else {
+        alert("Invalid code.");
+      }
+      document.getElementById("code-input").value = "";
+      closeModal();
+    }
+    function buyUpgrade(name) {
+      if (name === "mythflash") {
+        unlocked.mythflash = true;
+        localStorage.setItem("unlocked", JSON.stringify(unlocked));
+        alert("💸 MythFlash 2 purchased and unlocked!");
+      } else if (name === "mythgpt2") {
+        unlocked.mythgpt2 = true;
+        localStorage.setItem("unlocked", JSON.stringify(unlocked));
+        alert("💸 MythGPT 2.0 purchased and unlocked!");
+      }
+      closeModal();
+    }
+
+    // === Tasks handling ===
+    function completeTask(taskKey) {
+      if (tasks[taskKey] && !tasks[taskKey].completed) {
+        tasks[taskKey].completed = true;
+        alert(`🎉 Task completed: ${tasks[taskKey].description}\nYour reward code: ${tasks[taskKey].code}`);
+      }
+    }
+
+    function updateTasksProgress() {
+      // For example, after 10 messages, complete task2
+      if (!tasks["task2"].completed && chatLog.filter(m => m.startsWith(username + ":")).length >= 10) {
+        completeTask("task2");
+      }
+    }
+
+    function checkMessageCountTasks() {
+      updateTasksProgress();
+    }
+
+    // === Weekly update banner (shows only on Saturdays and if 100+ messages sent) ===
+    function updateWeeklyUpdate() {
+      const weeklyDiv = document.getElementById("weekly-update");
+      const today = new Date();
+      const isSaturday = today.getDay() === 6;
+      const msgCount = chatLog.length;
+      if (isSaturday && msgCount >= 100) {
+        weeklyDiv.textContent = "🆕 New Update Available! Come back every Saturday for fresh content!";
+      } else {
+        weeklyDiv.textContent = "";
+      }
+    }
+
+    // === Initialize page with default settings ===
+    window.onload = () => {
+      document.getElementById("password").type = "password";
+      document.getElementById("user-input").addEventListener("keydown", e => {
+        if (e.key === "Enter") sendMessage();
+      });
+    };
+  </script>
+</body>
+
+</html>
