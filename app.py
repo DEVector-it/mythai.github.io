@@ -136,12 +136,14 @@ def initialize_app_data():
         conn.commit()
         conn.close()
         print("Admin user created.")
-
 # --- 5. HTML and JavaScript Frontend ---
 HTML_CONTENT = """
 <!DOCTYPE html>
 <html lang="en" class="dark">
 <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Myth AI 2.2</title>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Myth AI 2.2</title>
@@ -575,4 +577,5 @@ if __name__ == '__main__':
     print(" → Open your browser to http://127.0.0.1:5000")
     print("======================================================")
     app.run(host='0.0.0.0', port=5000, debug=False)
+
 
