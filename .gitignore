@@ -1,0 +1,8 @@
+# Ignore the secret environment file
+.env
+
+# Ignore the local database file
+database.db
+
+# Ignore Python's temporary cache files
+__pycache__/
